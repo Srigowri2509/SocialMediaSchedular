@@ -6,10 +6,16 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   // For Vercel, use root path. For GitHub Pages, use repo name
-  base: process.env.VITE_BASE || (process.env.VERCEL ? '/' : '/SocialMediaSchedular/'),
+  // Default to '/' for Vercel, override with VITE_BASE env var for GitHub Pages
+  base: process.env.VITE_BASE || '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
 })
