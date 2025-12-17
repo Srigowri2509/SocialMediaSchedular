@@ -30,58 +30,78 @@ export default function SocialMediaScheduler() {
 
   const checkAuth = async () => {
     try {
+      if (!window.storage) {
+        console.warn('Storage not available');
+        return;
+      }
       const authResult = await window.storage.get('user-auth');
       const accountsResult = await window.storage.get('connected-accounts');
 
       if (authResult) {
         setIsAuthenticated(true);
       }
-      if (accountsResult) {
+      if (accountsResult && accountsResult.value) {
         setConnectedAccounts(JSON.parse(accountsResult.value));
       }
     } catch (error) {
-      console.log('No authentication found');
+      console.log('No authentication found', error);
     }
   };
 
   const loadPosts = async () => {
     try {
+      if (!window.storage) {
+        console.warn('Storage not available');
+        return;
+      }
       const result = await window.storage.get('scheduled-posts');
-      if (result) {
+      if (result && result.value) {
         setPosts(JSON.parse(result.value));
       }
     } catch (error) {
-      console.log('No existing posts');
+      console.log('No existing posts', error);
     }
   };
 
   const savePosts = async (updatedPosts) => {
     try {
+      if (!window.storage) {
+        console.warn('Storage not available');
+        setPosts(updatedPosts);
+        return;
+      }
       await window.storage.set('scheduled-posts', JSON.stringify(updatedPosts));
       setPosts(updatedPosts);
     } catch (error) {
       console.error('Failed to save posts', error);
+      setPosts(updatedPosts); // Still update state even if storage fails
     }
   };
 
   const handleLogin = async (email, password) => {
     try {
-      await window.storage.set('user-auth', JSON.stringify({ email, loggedIn: true }));
+      if (window.storage) {
+        await window.storage.set('user-auth', JSON.stringify({ email, loggedIn: true }));
+      }
       setIsAuthenticated(true);
       alert('Login successful! Now connect your social media accounts.');
     } catch (error) {
       console.error('Login failed', error);
+      setIsAuthenticated(true); // Still allow login even if storage fails
     }
   };
 
   const handleLogout = async () => {
     try {
-      await window.storage.delete('user-auth');
-      await window.storage.delete('connected-accounts');
+      if (window.storage) {
+        await window.storage.delete('user-auth');
+        await window.storage.delete('connected-accounts');
+      }
       setIsAuthenticated(false);
       setConnectedAccounts({ facebook: null, instagram: null, twitter: null });
     } catch (error) {
       console.error('Logout failed', error);
+      setIsAuthenticated(false); // Still logout even if storage fails
     }
   };
 
@@ -99,7 +119,9 @@ export default function SocialMediaScheduler() {
     setConnectedAccounts(updated);
 
     try {
-      await window.storage.set('connected-accounts', JSON.stringify(updated));
+      if (window.storage) {
+        await window.storage.set('connected-accounts', JSON.stringify(updated));
+      }
     } catch (error) {
       console.error('Failed to save account', error);
     }
@@ -110,7 +132,9 @@ export default function SocialMediaScheduler() {
     setConnectedAccounts(updated);
 
     try {
-      await window.storage.set('connected-accounts', JSON.stringify(updated));
+      if (window.storage) {
+        await window.storage.set('connected-accounts', JSON.stringify(updated));
+      }
     } catch (error) {
       console.error('Failed to disconnect account', error);
     }
